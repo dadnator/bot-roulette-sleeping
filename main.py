@@ -79,7 +79,7 @@ class RejoindreView(discord.ui.View):
 
         suspense_embed = discord.Embed(
             title="🎰 La roulette tourne...",
-            description="Prépare-toi au tirage du numéro !",
+            description="On croise les doigts 🤞🏻 !",
             color=discord.Color.greyple())
         suspense_embed.set_image(
             url=
@@ -88,7 +88,7 @@ class RejoindreView(discord.ui.View):
 
         await original_message.edit(embed=suspense_embed, view=None)
 
-        for i in [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]:
+        for i in range(10, 0, -1):
             await asyncio.sleep(1)
             suspense_embed.title = f"🎰 Résultat dans... {i}"
             await original_message.edit(embed=suspense_embed)
