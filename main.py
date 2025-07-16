@@ -90,7 +90,7 @@ class RejoindreView(discord.ui.View):
 
         for i in range(10, 0, -1):
             await asyncio.sleep(1)
-            suspense_embed.title = f"🎰 Résultat dans... {i}"
+            suspense_embed.title = f"🎰 Tirage en cours..."
             await original_message.edit(embed=suspense_embed)
 
         numero = random.randint(0, 36)
