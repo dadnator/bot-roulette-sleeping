@@ -94,7 +94,7 @@ class RejoindreView(discord.ui.View):
         for i in range(10, 0, -1):
             print(f"Décompte: {i}")
             # Mettre à jour le titre de l'embed avec le numéro de compte à rebours actuel
-            suspense_embed.title = f"🎰 Tirage en cours ... {i} !"
+            suspense_embed.title = f"🎰 Tirage en cours ...!"
             await original_message.edit(embed=suspense_embed)
             await asyncio.sleep(1)
         print("Après la boucle de décompte. La boucle est terminée.")
