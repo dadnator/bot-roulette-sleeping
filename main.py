@@ -88,11 +88,15 @@ class RejoindreView(discord.ui.View):
 
         await original_message.edit(embed=suspense_embed, view=None)
 
-        for i in range(10, 0, -1):
+        # --- Début de la section corrigée pour la boucle et les prints ---
+        print("Avant la boucle de décompte.")
+        for i in range(10, 0, -1): # La boucle s'exécute 10 fois (de 10 à 1 inclus)
+            print(f"Décompte: {i}") # Ce print s'exécute à chaque itération
             await asyncio.sleep(1)
-            suspense_embed.title = f"🎰 Tirage en cours..."
+            suspense_embed.title = f"🎰 Tirage en cours ..." # J'ajoute le décompte ici pour un meilleur feedback
             await original_message.edit(embed=suspense_embed)
-
+        print("Après la boucle de décompte. La boucle est terminée.") # Ce print s'exécute UNE SEULE FOIS après la boucle
+        # --- Fin de la section corrigée ---
         numero = random.randint(0, 36)
         ROUGES = {
             1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36
@@ -140,6 +144,9 @@ class RejoindreView(discord.ui.View):
             value=
             f"{joueur2.mention}\nChoix : {EMOJIS[valeur_joueur2]} `{valeur_joueur2.upper()}`",
             inline=True)
+            # Champ avec des tirets pour créer une ligne de séparation
+        # Vous pouvez ajuster le nombre de tirets ou utiliser d'autres caractères
+        result.add_field(name=" ", value="─" * 20, inline=False) # Utilise des tirets '─' (barre horizontale légère)
         result_embed.add_field(
             name="🏆 Gagnant",
             value=
