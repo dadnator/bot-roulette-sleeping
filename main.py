@@ -83,7 +83,7 @@ class RejoindreView(discord.ui.View):
             color=discord.Color.greyple())
         suspense_embed.set_image(
             url=
-            "https://i.makeagif.com/media/11-22-2017/gXYMAo.gif000/0/1691072860924?e=2147483647&v=beta&t=kuzhgDcGRovfVAsYlH1l6c3J7yfulu54arsEPldFFNI"
+            "https://i.makeagif.com/media/11-22-2017/gXYMAo.gif"
         )
 
         await original_message.edit(embed=suspense_embed, view=None)
