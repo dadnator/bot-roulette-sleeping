@@ -135,7 +135,7 @@ class RejoindreView(discord.ui.View):
             value=f"{joueur2.mention}\nChoix : {EMOJIS[valeur_joueur2]} `{valeur_joueur2.upper()}`",
             inline=False)
         result_embed.add_field(name=" ", value="─" * 20, inline=False)
-         result_embed.add_field(name="💰 Montant misé", value=f"**{self.montant:,} kamas** par joueur ",
+        result_embed.add_field(name="💰 Montant misé", value=f"**{self.montant:,} kamas** par joueur ",
             inline=False)
         result_embed.add_field(
             name="🏆 Gagnant",
