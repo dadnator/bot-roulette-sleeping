@@ -275,6 +275,7 @@ async def sleeping(interaction: discord.Interaction, montant: int):
     await interaction.response.send_message(
         embed=embed,
         view=view,
+        ephemeral=True,
         allowed_mentions=discord.AllowedMentions(roles=True)
     )
 
