@@ -148,7 +148,6 @@ class RejoindreView(discord.ui.View):
 
 
 class PariView(discord.ui.View):
-
     def __init__(self, interaction, montant):
         super().__init__(timeout=None)
         self.interaction = interaction
@@ -172,9 +171,12 @@ class PariView(discord.ui.View):
 
         embed = discord.Embed(
             title="🎰 Duel Roulette",
-            description=
-            f"{joueur1.mention} a choisi : {EMOJIS[valeur]} **{valeur.upper()}** ({type_pari})\nMontant : **{self.montant:,} kamas** 💰",
-            color=discord.Color.orange())
+            description=(
+                f"{joueur1.mention} a choisi : {EMOJIS[valeur]} **{valeur.upper()}** ({type_pari})\n"
+                f"Montant : **{self.montant:,} kamas** 💰"
+            ),
+            color=discord.Color.orange()
+        )
         embed.add_field(name="👤 Joueur 1",
                         value=f"{joueur1.mention} - {EMOJIS[valeur]} {valeur}",
                         inline=True)
@@ -182,19 +184,33 @@ class PariView(discord.ui.View):
                         value="🕓 En attente...",
                         inline=True)
         embed.set_footer(
-            text=
-            f"📋 Pari pris : {joueur1.display_name} - {EMOJIS[valeur]} {valeur.upper()} | Choix restant : {EMOJIS[choix_restant]} {choix_restant.upper()}"
+            text=(
+                f"📋 Pari pris : {joueur1.display_name} - {EMOJIS[valeur]} {valeur.upper()} | "
+                f"Choix restant : {EMOJIS[choix_restant]} {choix_restant.upper()}"
+            )
         )
 
         await interaction.response.edit_message(embed=embed, view=None)
 
-        rejoindre_view = RejoindreView(message_id=None,
-                                       joueur1=joueur1,
-                                       type_pari=type_pari,
-                                       valeur_choisie=valeur,
-                                       montant=self.montant)
-        message = await interaction.channel.send(embed=embed,
-                                                 view=rejoindre_view)
+        rejoindre_view = RejoindreView(
+            message_id=None,
+            joueur1=joueur1,
+            type_pari=type_pari,
+            valeur_choisie=valeur,
+            montant=self.montant
+        )
+
+        # ✅ Ajout du ping ici
+        sleeping_role = discord.utils.get(interaction.guild.roles, name="sleeping")
+        content = f"{sleeping_role.mention} — 🎯 Un nouveau duel est prêt !"
+
+        message = await interaction.channel.send(
+            content=content,
+            embed=embed,
+            view=rejoindre_view,
+            allowed_mentions=discord.AllowedMentions(roles=True)
+        )
+
         rejoindre_view.message_id = message.id
 
         duels[message.id] = {
@@ -205,24 +221,21 @@ class PariView(discord.ui.View):
         }
 
     @discord.ui.button(label="🔴 Rouge", style=discord.ButtonStyle.danger)
-    async def rouge(self, interaction: discord.Interaction,
-                    button: discord.ui.Button):
+    async def rouge(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.lock_in_choice(interaction, "couleur", "rouge")
 
     @discord.ui.button(label="⚫ Noir", style=discord.ButtonStyle.secondary)
-    async def noir(self, interaction: discord.Interaction,
-                   button: discord.ui.Button):
+    async def noir(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.lock_in_choice(interaction, "couleur", "noir")
 
     @discord.ui.button(label="🔵 Pair", style=discord.ButtonStyle.primary)
-    async def pair(self, interaction: discord.Interaction,
-                   button: discord.ui.Button):
+    async def pair(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.lock_in_choice(interaction, "pair", "pair")
 
     @discord.ui.button(label="🟣 Impair", style=discord.ButtonStyle.blurple)
-    async def impair(self, interaction: discord.Interaction,
-                     button: discord.ui.Button):
+    async def impair(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.lock_in_choice(interaction, "pair", "impair")
+
 
 
 # Commande /sleeping accessible uniquement aux membres avec rôle 'sleeping'
@@ -258,12 +271,8 @@ async def sleeping(interaction: discord.Interaction, montant: int):
 
     view = PariView(interaction, montant)
 
-    # 💬 Mention du rôle sleeping
-    sleeping_role = discord.utils.get(interaction.guild.roles, name="sleeping")
-    content = f"{sleeping_role.mention} — 🎯 Un nouveau duel est prêt !"
 
     await interaction.response.send_message(
-        content=content,
         embed=embed,
         view=view,
         allowed_mentions=discord.AllowedMentions(roles=True)
