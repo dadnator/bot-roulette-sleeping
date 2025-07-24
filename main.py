@@ -14,6 +14,48 @@ bot = commands.Bot(command_prefix="/", intents=intents)
 duels = {}
 EMOJIS = {"rouge": "🔴", "noir": "⚫", "pair": "🔵", "impair": "🟣"}
 
+# Dictionnaire pour stocker les URLs des images des numéros de roulette
+# REMPLACE CES URLS PAR LES TIENNES !
+ROULETTE_NUM_IMAGES = {
+    1: "https://i.imgur.com/s6T6Dq3.png",
+    2: "https://i.imgur.com/o43zWv0.png",
+    # ... continue pour tous les numéros jusqu'à 36
+    3: "https://i.imgur.com/J1FHHeb.png",
+    4: "https://i.imgur.com/lqdQLHK.png",
+    5: "https://i.imgur.com/NdQrygE.png",
+    6: "https://i.imgur.com/sbQaR2w.png",
+    7: "https://i.imgur.com/jbaVFxR.png",
+    8: "https://i.imgur.com/VOMwev3.png",
+    9: "https://i.imgur.com/EKSEqZ1.png",
+    10: "https://i.imgur.com/knk7BKz.png",
+    11: "https://i.imgur.com/UIgKx8Q.png",
+    12: "https://i.imgur.com/CNZnXNC.png",
+    13: "https://i.imgur.com/lCKbNjV.png",
+    14: "https://i.imgur.com/AvXoueX.png",
+    15: "https://i.imgur.com/imVXdYZ.png",
+    16: "https://i.imgur.com/80GVoqY.png",
+    17: "https://i.imgur.com/qgJCPba.png",
+    18: "https://i.imgur.com/yJSo1dz.png",
+    19: "https://i.imgur.com/zWYj1wt.png",
+    20: "https://i.imgur.com/hf1FWVt.png",
+    21: "https://i.imgur.com/TfVHrF0.png",
+    22: "https://i.imgur.com/f3ovweG.png",
+    23: "https://i.imgur.com/9c4WY74.png",
+    24: "https://i.imgur.com/XiGuCPy.png",
+    25: "https://i.imgur.com/J9UW5kj.png",
+    26: "https://i.imgur.com/JsVXe7p.png",
+    27: "https://i.imgur.com/lPge6Kz.png",
+    28: "https://i.imgur.com/RxgoKGO.png",
+    29: "https://i.imgur.com/BavzZ70.png",
+    30: "https://i.imgur.com/Z7ylaOv.png",
+    31: "https://i.imgur.com/PTslpCW.png",
+    32: "https://i.imgur.com/vXBzXLJ.png",
+    33: "https://i.imgur.com/ORmVaVX.png",
+    34: "https://i.imgur.com/XkLUA4y.png",
+    35: "https://i.imgur.com/wP5esQs.png",
+    36: "https://i.imgur.com/0ATzQAH.png" # ou sa couleur réelle si elle est différente
+}
+
 
 # --- Check personnalisé pour rôle sleeping ---
 def is_sleeping():
@@ -107,7 +149,7 @@ class RejoindreView(discord.ui.View):
             await original_message.edit(embed=suspense_embed)
             await asyncio.sleep(1)
 
-        numero = random.randint(0, 36)
+        numero = random.randint(1, 36)
         ROUGES = {1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36}
         NOIRS = {2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35}
 
@@ -125,6 +167,11 @@ class RejoindreView(discord.ui.View):
                 f"{'🔵 Pair' if parite == 'pair' else '🟣 Impair' if parite == 'impair' else '❔ Aucune'}"
             ),
             color=discord.Color.green() if gagnant == joueur2 else discord.Color.red())
+
+        # AJOUTE CETTE LIGNE POUR L'IMAGE DU NUMÉRO TIRÉ
+        if numero in ROULETTE_NUM_IMAGES:
+            result_embed.set_thumbnail(url=ROULETTE_NUM_IMAGES[numero])
+
 
         result_embed.add_field(
             name="👤 Joueur 1",
