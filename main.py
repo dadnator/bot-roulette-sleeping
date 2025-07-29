@@ -353,8 +353,8 @@ class StatsView(discord.ui.View):
         for rank, (user_id, mises, kamas_gagnes, victoires, winrate, total_paris) in enumerate(slice_entries, start=start + 1):
             description += (
                 f"**#{rank}** <@{user_id}> — "
-                f"Misés : **`{mises:,}` kamas <:emoji_1:1399743189489025215>** | "  # Mis en gras
-                f"Gagnés : **`{kamas_gagnes:,}` kamas <:emoji_1:1399743189489025215>** | " # Mis en gras
+                f"<:emoji_1:1399743189489025215> **Misés** : **`{mises:,}` kamas** | "  # Mis en gras
+                f"<:emoji_1:1399743189489025215> **Gagnés** : **`{kamas_gagnes:,}` kamas** | " # Mis en gras
                 f"Winrate : **`{winrate:.1f}%`** (**{victoires}**/**{total_paris}**)\n" # Mis en gras
             )
 
