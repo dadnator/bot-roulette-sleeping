@@ -7,6 +7,18 @@ import random
 import asyncio
 import sqlite3
 from datetime import datetime, timedelta
+import os
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # Charge les variables depuis .env
+
+token = os.getenv("TOKEN_BOT_DISCORD")
+
+# Puis utilise `token` pour te connecter au bot Discord
+
+print("📂 Fichier SQLite utilisé par le bot :", os.path.abspath("roulette_stats.db"))
+
 
 token = os.environ['TOKEN_BOT_DISCORD']
 
