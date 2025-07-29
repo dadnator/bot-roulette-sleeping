@@ -63,33 +63,38 @@ ROULETTE_NUM_IMAGES = {
 
 # --- Fonctions de stats ---
 def charger_stats():
-    if os.path.exists(STATS_FILE):
-        with open(STATS_FILE, "r") as f:
-            return json.load(f)
-    return {}
+    if not os.path.exists(STATS_FILE):
+        return {}
+    with open(STATS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 def sauvegarder_stats(stats):
-    with open(STATS_FILE, "w") as f:
+    with open(STATS_FILE, "w", encoding="utf-8") as f:
         json.dump(stats, f, indent=2)
 
-def maj_stats(user_id, mises, gagnes, victoire):
+def maj_stats(user_id: int, gagne: bool, mise: int, gain: int):
     stats = charger_stats()
-    uid = str(user_id)
-    today = date.today()
-    week_key = f"{today.year}-W{today.isocalendar()[1]}"
+    user_id = str(user_id)
 
-    for scope in ("all", week_key):
-        if uid not in stats:
-            stats[uid] = {}
-        if scope not in stats[uid]:
-            stats[uid][scope] = {"mises": 0, "gagnes": 0, "victoires": 0, "defaites": 0}
+    annee, semaine, _ = date.today().isocalendar()
+    semaine_cle = f"{annee}-W{semaine}"
 
-        stats[uid][scope]["mises"] += mises
-        stats[uid][scope]["gagnes"] += gagnes
-        if victoire:
-            stats[uid][scope]["victoires"] += 1
+    for scope in ["all", semaine_cle]:
+        if user_id not in stats:
+            stats[user_id] = {}
+
+        if scope not in stats[user_id]:
+            stats[user_id][scope] = {
+                "mises": 0, "gagnes": 0, "victoires": 0, "defaites": 0
+            }
+
+        s = stats[user_id][scope]
+        s["mises"] += mise
+        s["gagnes"] += gain
+        if gagne:
+            s["victoires"] += 1
         else:
-            stats[uid][scope]["defaites"] += 1
+            s["defaites"] += 1
 
     sauvegarder_stats(stats)
 
