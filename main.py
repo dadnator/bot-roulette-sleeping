@@ -358,7 +358,7 @@ class StatsView(discord.ui.View):
         )
     embed.description = description
     embed.set_footer(text=f"Page {self.page + 1}/{self.max_page + 1}")
-    return embed
+        return embed
 
 
     @discord.ui.button(label="⏮️", style=discord.ButtonStyle.secondary)
