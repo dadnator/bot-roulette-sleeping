@@ -339,7 +339,7 @@ class StatsView(discord.ui.View):
         self.next_page.disabled = self.page == self.max_page
         self.last_page.disabled = self.page == self.max_page
 
-    def get_embed(self):  # <--- INDENTÉ CORRECTEMENT
+    def get_embed(self):
         embed = discord.Embed(title="📊 Statistiques Roulette", color=discord.Color.gold())
         start = self.page * self.entries_per_page
         end = start + self.entries_per_page
@@ -353,9 +353,9 @@ class StatsView(discord.ui.View):
         for rank, (user_id, mises, kamas_gagnes, victoires, winrate, total_paris) in enumerate(slice_entries, start=start + 1):
             description += (
                 f"**#{rank}** <@{user_id}> — "
-                f"Misés : `{mises:,}` | "
-                f"Gagnés : `{kamas_gagnes:,}` 💰 | "
-                f"Winrate : `{winrate:.1f}%` ({victoires}/{total_paris})\n"
+                f"Misés : **`{mises:,}` kamas <:emoji_1:1399743189489025215>** | "  # Mis en gras
+                f"Gagnés : **`{kamas_gagnes:,}` kamas <:emoji_1:1399743189489025215>** | " # Mis en gras
+                f"Winrate : **`{winrate:.1f}%`** (**{victoires}**/**{total_paris}**)\n" # Mis en gras
             )
 
         embed.description = description
