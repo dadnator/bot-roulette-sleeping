@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 token = os.environ['TOKEN_BOT_DISCORD']
 
 intents = discord.Intents.default()
-bot = commands.commands.Bot(command_prefix="/", intents=intents)
+bot = commands.Bot(command_prefix="/", intents=intents)
 
 duels = {}
 EMOJIS = {"rouge": "🔴", "noir": "⚫", "pair": "🔵", "impair": "🟣"}
