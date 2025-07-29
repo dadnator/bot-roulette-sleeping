@@ -324,6 +324,46 @@ class PariView(discord.ui.View):
     async def impair(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.lock_in_choice(interaction, "pair", "impair")
 
+@bot.tree.command(name="statsall", description="Voir le classement global")
+async def statsall(interaction: discord.Interaction):
+    joueurs = generer_classement("all")
+
+    if not joueurs:
+        return await interaction.response.send_message("Aucune donnée pour le classement global.", ephemeral=True)
+
+    description = ""
+    for i, joueur in enumerate(joueurs[:20], 1):  # Top 20
+        user_mention = f"<@{joueur['user_id']}>"
+        description += (
+            f"**{i}.** {user_mention}\n"
+            f"┃ Misés : {joueur['mises']:,} kamas 💰 | Gagnés : {joueur['gagnes']:,} kamas 💰\n"
+            f"┃ Winrate : {joueur['winrate']:.1f}% ({joueur['victoires']}/{joueur['duels']})\n\n"
+        )
+
+    embed = Embed(title="🏆 Classement des joueurs (Global)", description=description, color=0xFFD700)
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="stats", description="Voir le classement de la semaine en cours")
+async def stats_week(interaction: discord.Interaction):
+    from datetime import date
+    current_week = f"{date.today().year}-W{date.today().isocalendar()[1]}"
+
+    joueurs = generer_classement(current_week)
+
+    if not joueurs:
+        return await interaction.response.send_message("Aucune donnée pour cette semaine.", ephemeral=True)
+
+    description = ""
+    for i, joueur in enumerate(joueurs[:20], 1):
+        user_mention = f"<@{joueur['user_id']}>"
+        description += (
+            f"**{i}.** {user_mention}\n"
+            f"┃ Misés : {joueur['mises']:,} kamas 💰 | Gagnés : {joueur['gagnes']:,} kamas 💰\n"
+            f"┃ Winrate : {joueur['winrate']:.1f}% ({joueur['victoires']}/{joueur['duels']})\n\n"
+        )
+
+    embed = Embed(title="📅 Classement des joueurs (Semaine en cours)", description=description, color=0x1ABC9C)
+    await interaction.response.send_message(embed=embed)
 
 
 # Commande /sleeping accessible uniquement aux membres avec rôle 'sleeping'
