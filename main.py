@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 token = os.environ['TOKEN_BOT_DISCORD']
 
 intents = discord.Intents.default()
-bot = commands.Bot(command_prefix="/", intents=intents)
+bot = commands.commands.Bot(command_prefix="/", intents=intents)
 
 duels = {}
 EMOJIS = {"rouge": "🔴", "noir": "⚫", "pair": "🔵", "impair": "🟣"}
@@ -212,11 +212,11 @@ class RejoindreView(discord.ui.View):
             value=f"{joueur2.mention}\nChoix : {EMOJIS[valeur_joueur2]} `{valeur_joueur2.upper()}`",
             inline=False)
         result_embed.add_field(name=" ", value="─" * 20, inline=False)
-        result_embed.add_field(name="💰 Montant misé", value=f"**{self.montant:,} kamas** par joueur ",
+        result_embed.add_field(name="💰 Montant misé", value=f"**{self.montant:,.0f}".replace(",", " ") + " kamas** par joueur ",
             inline=False)
         result_embed.add_field(
             name="🏆 Gagnant",
-            value=f"**{gagnant.mention}** remporte **{2 * self.montant:,} kamas** 💰",
+            value=f"**{gagnant.mention}** remporte **{(2 * self.montant):,.0f}".replace(",", " ") + " kamas** 💰",
             inline=False)
         result_embed.set_footer(text="🎰 Duel terminé • Bonne chance pour le prochain !")
 
@@ -258,7 +258,7 @@ class PariView(discord.ui.View):
             title="🎰 Duel Roulette",
             description=(
                 f"{joueur1.mention} a choisi : {EMOJIS[valeur]} **{valeur.upper()}** ({type_pari})\n"
-                f"Montant : **{self.montant:,} kamas** 💰"
+                f"Montant : **{self.montant:,.0f}".replace(",", " ") + " kamas** 💰"
             ),
             color=discord.Color.orange()
         )
@@ -351,11 +351,12 @@ class StatsView(discord.ui.View):
 
         description = ""
         for rank, (user_id, mises, kamas_gagnes, victoires, winrate, total_paris) in enumerate(slice_entries, start=start + 1):
+            # Utilisez le formatage :,.0f pour les milliers, puis remplacez la virgule par un espace
             description += (
                 f"**#{rank}** <@{user_id}> — "
-                f"<:emoji_1:1399743189489025215> **Misés** : **`{mises:,}` kamas** | "  # Mis en gras
-                f"<:emoji_1:1399743189489025215> **Gagnés** : **`{kamas_gagnes:,}` kamas** | " # Mis en gras
-                f"Winrate : **`{winrate:.1f}%`** (**{victoires}**/**{total_paris}**)\n" # Mis en gras
+                f"<:emoji_1:1399743189489025215> **Misés** : **`{mises:,.0f}`".replace(",", " ") + " kamas** | "
+                f"<:emoji_1:1399743189489025215> **Gagnés** : **`{kamas_gagnes:,.0f}`".replace(",", " ") + " kamas** | "
+                f"**Winrate** : **`{winrate:.1f}%`** (**{victoires}**/**{total_paris}**)\n"
             )
 
         embed.description = description
@@ -394,8 +395,8 @@ class StatsView(discord.ui.View):
 @is_sleeping()
 async def statsall(interaction: discord.Interaction):
     c.execute("""
-    SELECT joueur_id, 
-           SUM(montant) as total_mise, 
+    SELECT joueur_id,
+           SUM(montant) as total_mise,
            SUM(CASE WHEN gagnant_id = joueur_id THEN montant * 2 ELSE 0 END) as kamas_gagnes,
            SUM(CASE WHEN gagnant_id = joueur_id THEN 1 ELSE 0 END) as victoires,
            COUNT(*) as total_paris
@@ -448,7 +449,7 @@ async def sleeping(interaction: discord.Interaction, montant: int):
 
     embed = discord.Embed(
         title="🎰 Nouveau Duel Roulette",
-        description=f"{interaction.user.mention} veut lancer un duel pour **{montant:,} kamas** 💰",
+        description=f"{interaction.user.mention} veut lancer un duel pour **{montant:,.0f}".replace(",", " ") + " kamas** 💰",
         color=discord.Color.gold())
     embed.add_field(
         name="Choix du pari",
