@@ -421,7 +421,7 @@ async def statsall(interaction: discord.Interaction):
         return
 
     view = StatsView(interaction, stats)
-    await interaction.response.send_message(embed=view.get_embed(), view=view, ephemeral=True)
+    await interaction.response.send_message(embed=view.get_embed(), view=view, ephemeral=False)
 
 
 # Commande /sleeping accessible uniquement aux membres avec rôle 'sleeping'
