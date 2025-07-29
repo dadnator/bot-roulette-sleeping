@@ -9,7 +9,7 @@ import json
 from datetime import date
 
 # --- Configuration ---
-STATS_FILE = "stats.json"
+STATS_FILE = "https://github.com/dadnator/bot-roulette-sleeping/blob/main/stats.json"
 token = os.environ['TOKEN_BOT_DISCORD']
 
 intents = discord.Intents.default()
