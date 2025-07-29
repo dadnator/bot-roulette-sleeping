@@ -350,14 +350,17 @@ class StatsView(discord.ui.View):
             return embed
 
         description = ""
-        for rank, (user_id, mises, kamas_gagnes, victoires, winrate, total_paris) in enumerate(slice_entries, start=start + 1):
-            # Utilisez le formatage :,.0f pour les milliers, puis remplacez la virgule par un espace
+        for i, (user_id, mises, kamas_gagnes, victoires, winrate, total_paris) in enumerate(slice_entries):
+            rank = self.page * self.entries_per_page + i + 1
             description += (
                 f"**#{rank}** <@{user_id}> — "
                 f"<:emoji_1:1399743189489025215> **Misés** : **`{mises:,.0f}`".replace(",", " ") + " kamas** | "
                 f"<:emoji_1:1399743189489025215> **Gagnés** : **`{kamas_gagnes:,.0f}`".replace(",", " ") + " kamas** | "
                 f"**Winrate** : **`{winrate:.1f}%`** (**{victoires}**/**{total_paris}**)\n"
             )
+            # Ajoute une ligne de séparation après chaque joueur sauf le dernier de la page
+            if i < len(slice_entries) - 1:
+                description += "─" * 20 + "\n"
 
         embed.description = description
         embed.set_footer(text=f"Page {self.page + 1}/{self.max_page + 1}")
