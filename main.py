@@ -5,16 +5,14 @@ from discord.ext import commands
 from keep_alive import keep_alive
 import random
 import asyncio
-import json
-from datetime import date
+import sqlite3
+from datetime import datetime, timedelta
 
-# --- Configuration ---
-STATS_FILE = "https://github.com/dadnator/bot-roulette-sleeping/blob/main/stats.json"
+
 token = os.environ['TOKEN_BOT_DISCORD']
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="/", intents=intents)
-
 
 duels = {}
 EMOJIS = {"rouge": "🔴", "noir": "⚫", "pair": "🔵", "impair": "🟣"}
@@ -61,42 +59,21 @@ ROULETTE_NUM_IMAGES = {
     36: "https://i.imgur.com/6a0GrRe.png" # ou sa couleur réelle si elle est différente
 }
 
-# --- Fonctions de stats ---
-def charger_stats():
-    if not os.path.exists(STATS_FILE):
-        return {}
-    with open(STATS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+# --- Connexion SQLite et création table ---
+conn = sqlite3.connect("roulette_stats.db")
+c = conn.cursor()
+c.execute("""
+CREATE TABLE IF NOT EXISTS paris (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    joueur1_id INTEGER NOT NULL,
+    joueur2_id INTEGER NOT NULL,
+    montant INTEGER NOT NULL,
+    gagnant_id INTEGER NOT NULL,
+    date TIMESTAMP NOT NULL
+)
+""")
+conn.commit()
 
-def sauvegarder_stats(stats):
-    with open(STATS_FILE, "w", encoding="utf-8") as f:
-        json.dump(stats, f, indent=2)
-
-def maj_stats(user_id: int, gagne: bool, mise: int, gain: int):
-    stats = charger_stats()
-    user_id = str(user_id)
-
-    annee, semaine, _ = date.today().isocalendar()
-    semaine_cle = f"{annee}-W{semaine}"
-
-    for scope in ["all", semaine_cle]:
-        if user_id not in stats:
-            stats[user_id] = {}
-
-        if scope not in stats[user_id]:
-            stats[user_id][scope] = {
-                "mises": 0, "gagnes": 0, "victoires": 0, "defaites": 0
-            }
-
-        s = stats[user_id][scope]
-        s["mises"] += mise
-        s["gagnes"] += gain
-        if gagne:
-            s["victoires"] += 1
-        else:
-            s["defaites"] += 1
-
-    sauvegarder_stats(stats)
 
 # --- Check personnalisé pour rôle sleeping ---
 def is_sleeping():
@@ -125,6 +102,18 @@ class RejoindreView(discord.ui.View):
         self.type_pari = type_pari
         self.valeur_choisie = valeur_choisie
         self.montant = montant
+
+
+# --- Ajout insertion automatique dans la base lors du duel terminé ---
+class RejoindreView(discord.ui.View):
+    def __init__(self, message_id, joueur1, type_pari, valeur_choisie, montant):
+        super().__init__(timeout=None)
+        self.message_id = message_id
+        self.joueur1 = joueur1
+        self.type_pari = type_pari
+        self.valeur_choisie = valeur_choisie
+        self.montant = montant
+
 
     @discord.ui.button(label="🎯 Rejoindre le duel", style=discord.ButtonStyle.green)
     async def rejoindre(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -234,6 +223,14 @@ class RejoindreView(discord.ui.View):
         await original_message.edit(embed=result_embed, view=None)
         duels.pop(self.message_id, None)
 
+ # --- Insertion dans la base ---
+        now = datetime.utcnow()
+        try:
+            c.execute("INSERT INTO paris (joueur1_id, joueur2_id, montant, gagnant_id, date) VALUES (?, ?, ?, ?, ?)",
+                      (self.joueur1.id, joueur2.id, self.montant, gagnant.id, now))
+            conn.commit()
+        except Exception as e:
+            print("Erreur insertion base:", e)
 
 class PariView(discord.ui.View):
     def __init__(self, interaction, montant):
@@ -324,46 +321,105 @@ class PariView(discord.ui.View):
     async def impair(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.lock_in_choice(interaction, "pair", "impair")
 
-@bot.tree.command(name="statsall", description="Voir le classement global")
+# Pagination pour affichage stats
+class StatsView(discord.ui.View):
+    def __init__(self, ctx, entries, page=0):
+        super().__init__(timeout=120)
+        self.ctx = ctx
+        self.entries = entries
+        self.page = page
+        self.entries_per_page = 10
+        self.max_page = (len(entries) - 1) // self.entries_per_page
+
+        self.update_buttons()
+
+    def update_buttons(self):
+        self.first_page.disabled = self.page == 0
+        self.prev_page.disabled = self.page == 0
+        self.next_page.disabled = self.page == self.max_page
+        self.last_page.disabled = self.page == self.max_page
+
+    def get_embed(self):
+    embed = discord.Embed(title="📊 Statistiques Roulette", color=discord.Color.gold())
+    start = self.page * self.entries_per_page
+    end = start + self.entries_per_page
+    slice_entries = self.entries[start:end]
+    if not slice_entries:
+        embed.description = "Aucune donnée à afficher."
+        return embed
+
+    description = ""
+    for rank, (user_id, mises, kamas_gagnes, victoires, winrate, total_paris) in enumerate(slice_entries, start=start + 1):
+        description += (
+            f"**#{rank}** <@{user_id}> — "
+            f"Misés : `{mises:,}` | "
+            f"Gagnés : `{kamas_gagnes:,}` 💰 | "
+            f"Winrate : `{winrate:.1f}%` ({victoires}/{total_paris})\n"
+        )
+    embed.description = description
+    embed.set_footer(text=f"Page {self.page + 1}/{self.max_page + 1}")
+    return embed
+
+
+    @discord.ui.button(label="⏮️", style=discord.ButtonStyle.secondary)
+    async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.page = 0
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label="◀️", style=discord.ButtonStyle.secondary)
+    async def prev_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.page > 0:
+            self.page -= 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label="▶️", style=discord.ButtonStyle.secondary)
+    async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if self.page < self.max_page:
+            self.page += 1
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+    @discord.ui.button(label="⏭️", style=discord.ButtonStyle.secondary)
+    async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        self.page = self.max_page
+        self.update_buttons()
+        await interaction.response.edit_message(embed=self.get_embed(), view=self)
+
+# --- Commande /statsall : stats à vie ---
+@bot.tree.command(name="statsall", description="Affiche les stats de roulette à vie")
+@is_sleeping()
 async def statsall(interaction: discord.Interaction):
-    joueurs = generer_classement("all")
+    c.execute("""
+    SELECT joueur_id, 
+           SUM(montant) as total_mise, 
+           SUM(CASE WHEN gagnant_id = joueur_id THEN montant * 2 ELSE 0 END) as kamas_gagnes,
+           SUM(CASE WHEN gagnant_id = joueur_id THEN 1 ELSE 0 END) as victoires,
+           COUNT(*) as total_paris
+    FROM (
+        SELECT joueur1_id as joueur_id, montant, gagnant_id FROM paris
+        UNION ALL
+        SELECT joueur2_id as joueur_id, montant, gagnant_id FROM paris
+    )
+    GROUP BY joueur_id
+    """)
+    data = c.fetchall()
 
-    if not joueurs:
-        return await interaction.response.send_message("Aucune donnée pour le classement global.", ephemeral=True)
+    stats = []
+    for user_id, mises, kamas_gagnes, victoires, total_paris in data:
+        winrate = (victoires / total_paris * 100) if total_paris > 0 else 0.0
+        stats.append((user_id, mises, kamas_gagnes, victoires, winrate, total_paris))
 
-    description = ""
-    for i, joueur in enumerate(joueurs[:20], 1):  # Top 20
-        user_mention = f"<@{joueur['user_id']}>"
-        description += (
-            f"**{i}.** {user_mention}\n"
-            f"┃ Misés : {joueur['mises']:,} kamas 💰 | Gagnés : {joueur['gagnes']:,} kamas 💰\n"
-            f"┃ Winrate : {joueur['winrate']:.1f}% ({joueur['victoires']}/{joueur['duels']})\n\n"
-        )
+    # Tri par kamas gagnés
+    stats.sort(key=lambda x: x[2], reverse=True)
 
-    embed = Embed(title="🏆 Classement des joueurs (Global)", description=description, color=0xFFD700)
-    await interaction.response.send_message(embed=embed)
+    if not stats:
+        await interaction.response.send_message("Aucune donnée statistique disponible.", ephemeral=True)
+        return
 
-@bot.tree.command(name="stats", description="Voir le classement de la semaine en cours")
-async def stats_week(interaction: discord.Interaction):
-    from datetime import date
-    current_week = f"{date.today().year}-W{date.today().isocalendar()[1]}"
-
-    joueurs = generer_classement(current_week)
-
-    if not joueurs:
-        return await interaction.response.send_message("Aucune donnée pour cette semaine.", ephemeral=True)
-
-    description = ""
-    for i, joueur in enumerate(joueurs[:20], 1):
-        user_mention = f"<@{joueur['user_id']}>"
-        description += (
-            f"**{i}.** {user_mention}\n"
-            f"┃ Misés : {joueur['mises']:,} kamas 💰 | Gagnés : {joueur['gagnes']:,} kamas 💰\n"
-            f"┃ Winrate : {joueur['winrate']:.1f}% ({joueur['victoires']}/{joueur['duels']})\n\n"
-        )
-
-    embed = Embed(title="📅 Classement des joueurs (Semaine en cours)", description=description, color=0x1ABC9C)
-    await interaction.response.send_message(embed=embed)
+    view = StatsView(interaction, stats)
+    await interaction.response.send_message(embed=view.get_embed(), view=view, ephemeral=True)
 
 
 # Commande /sleeping accessible uniquement aux membres avec rôle 'sleeping'
