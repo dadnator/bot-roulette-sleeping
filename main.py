@@ -438,9 +438,9 @@ async def stats(interaction: discord.Interaction):
     data = c.fetchall()
 
     stats = []
-    for user_id, mises, gagnes, total_paris in data:
-        winrate = (gagnes / mises * 100) if mises > 0 else 0.0
-        stats.append((user_id, mises, gagnes, winrate, total_paris))
+    for user_id, mises, victoires, total_paris in data:
+        winrate = (victoires / total_paris * 100) if total_paris > 0 else 0.0
+        stats.append((user_id, mises, victoires, winrate, total_paris))
 
     stats.sort(key=lambda x: x[2], reverse=True)
     if not stats:
