@@ -354,8 +354,8 @@ class StatsView(discord.ui.View):
             rank = self.page * self.entries_per_page + i + 1
             description += (
                 f"**#{rank}** <@{user_id}> — "
-                f"<:emoji_1:1399743189489025215> **Misés** : **`{mises:,.0f}`".replace(",", " ") + " kamas** | "
-                f"<:emoji_1:1399743189489025215> **Gagnés** : **`{kamas_gagnes:,.0f}`".replace(",", " ") + " kamas** | "
+                f"<:emoji_2:1399792098529509546> **Misés** : **`{mises:,.0f}`".replace(",", " ") + " kamas** | "
+                f"<:emoji_2:1399792098529509546> **Gagnés** : **`{kamas_gagnes:,.0f}`".replace(",", " ") + " kamas** | "
                 f"**Winrate** : **`{winrate:.1f}%`** (**{victoires}**/**{total_paris}**)\n"
             )
             # Ajoute une ligne de séparation après chaque joueur sauf le dernier de la page
