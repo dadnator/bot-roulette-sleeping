@@ -339,7 +339,7 @@ class StatsView(discord.ui.View):
         self.next_page.disabled = self.page == self.max_page
         self.last_page.disabled = self.page == self.max_page
 
-    def get_embed(self):
+def get_embed(self):
     embed = discord.Embed(title="📊 Statistiques Roulette", color=discord.Color.gold())
     start = self.page * self.entries_per_page
     end = start + self.entries_per_page
@@ -361,6 +361,8 @@ class StatsView(discord.ui.View):
     embed.description = description
     embed.set_footer(text=f"Page {self.page + 1}/{self.max_page + 1}")
     return embed
+
+
 
 
 
