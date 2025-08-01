@@ -476,9 +476,13 @@ async def mystats(interaction: discord.Interaction):
 
     # Ajoute les champs avec les statistiques
     embed.add_field(name="Total misé", value=f"**{mises:,.0f}".replace(",", " ") + " kamas**", inline=False)
+    embed.add_field(name=" ", value="─" * 3, inline=False)
     embed.add_field(name="Total gagné", value=f"**{kamas_gagnes:,.0f}".replace(",", " ") + " kamas**", inline=False)
-    embed.add_field(name="Victoires", value=f"**{victoires}**", inline=True)
+    embed.add_field(name=" ", value="─" * 20, inline=False)
     embed.add_field(name="Duels joués", value=f"**{total_paris}**", inline=True)
+    embed.add_field(name=" ", value="─" * 3, inline=False)
+    embed.add_field(name="Victoires", value=f"**{victoires}**", inline=True)
+    embed.add_field(name=" ", value="─" * 3, inline=False)
     embed.add_field(name="Taux de victoire", value=f"**{winrate:.1f}%**", inline=False)
 
     embed.set_thumbnail(url=interaction.user.avatar.url if interaction.user.avatar else None)
