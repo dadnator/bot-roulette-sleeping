@@ -356,7 +356,7 @@ class StatsView(discord.ui.View):
                 f"**#{rank}** <@{user_id}> — "
                 f"<:emoji_2:1399792098529509546> **Misés** : **`{mises:,.0f}`".replace(",", " ") + " kamas** | "
                 f"<:emoji_2:1399792098529509546> **Gagnés** : **`{kamas_gagnes:,.0f}`".replace(",", " ") + " kamas** | "
-                f"**Winrate** : **`{winrate:.1f}%`** (**{victoires}**/**{total_paris}**)\n"
+                f"**🎯Winrate** : **`{winrate:.1f}%`** (**{victoires}**/**{total_paris}**)\n"
             )
             # Ajoute une ligne de séparation après chaque joueur sauf le dernier de la page
             if i < len(slice_entries) - 1:
