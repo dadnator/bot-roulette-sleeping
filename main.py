@@ -257,7 +257,7 @@ class PariView(discord.ui.View):
         embed = discord.Embed(
             title="🎰 Duel Roulette",
             description=(
-                f"{joueur1.mention} a choisi : {EMOJIS[valeur]} **{valeur.upper()}** ({type_pari})\n"
+                f"{joueur1.mention} a choisi : {EMOJIS[valeur]} **{valeur.upper()}** \n"
                 f"Montant : **{self.montant:,.0f}".replace(",", " ") + " kamas** 💰"
             ),
             color=discord.Color.orange()
