@@ -397,6 +397,14 @@ class StatsView(discord.ui.View):
 @bot.tree.command(name="statsall", description="Affiche les stats de roulette à vie")
 @is_sleeping()
 async def statsall(interaction: discord.Interaction):
+    # Vérifie si la commande est utilisée dans le bon salon.
+    if not isinstance(interaction.channel, discord.TextChannel) or interaction.channel.name != "roulettesleeping":
+        await interaction.response.send_message(
+            "❌ Cette commande ne peut être utilisée que dans le salon #roulettesleeping.",
+            ephemeral=True
+        )
+        return
+
     c.execute("""
     SELECT joueur_id,
            SUM(montant) as total_mise,
