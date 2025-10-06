@@ -257,9 +257,8 @@ class RejoindreView(discord.ui.View):
 
      # 2. ENVOI DU MESSAGE DE NOTIFICATION DE MISE (Sans le montant)
         await interaction.followup.send(
-            f"🎯 **Duel Complet !** \n"
-            f" {self.joueur2.mention} **a rejoint le duel** "
-            f"{role_croupier.mention}, veuillez **récupérer les mises** auprès de {self.joueur1.mention} et {self.joueur2.mention} .",
+            f"🎯 {self.joueur2.mention} **a rejoint le duel de** {self.joueur1.mention} \n "
+            f"{role_croupier.mention}, veuillez récupérer les mises du duel  .",
             allowed_mentions=discord.AllowedMentions(roles=True, users=True) 
         )
 
