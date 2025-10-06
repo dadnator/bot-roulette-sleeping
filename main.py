@@ -13,6 +13,7 @@ token = os.environ['TOKEN_BOT_DISCORD']
 ID_CROUPIER = 1401471414262829066
 ID_MEMBRE = 1366378672281620495
 ID_SALON_ROULETTE = 1394960912435122257
+ID_SALON_LOG_COMMISSION = 1366384335615164529
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="/", intents=intents)
@@ -81,13 +82,36 @@ CREATE TABLE IF NOT EXISTS paris (
 """)
 conn.commit()
 
+async def log_commission(croupier: discord.Member, commission_amount: int, joueur1: discord.Member, joueur2: discord.Member, montant: int):
+    """Envoie un log de commission au format 'Croupier [Montant]'."""
+    log_channel = bot.get_channel(ID_SALON_LOG_COMMISSION)
+    
+    if log_channel is None:
+        print(f"❌ Le salon de log avec l'ID {ID_SALON_LOG_COMMISSION} est introuvable.")
+        return
+
+    # Formatage du montant avec des espaces (ex: 100 000 kamas)
+    com_formatted = f"{commission_amount:,.0f}".replace(",", "\u00A0")
+    
+    # Création du message au format "Croupier 100 000 kamas"
+    log_message = (
+        f"💸 **{croupier.display_name}** a prélevé **{com_formatted} kamas** de commission.\n"
+        f"| Duel : {joueur1.mention} vs {joueur2.mention} (Mise : {montant:,}".replace(",", "\u00A0") + " kamas par joueur)"
+    )
+    
+    try:
+        await log_channel.send(log_message)
+        print(f"✅ Log commission de {com_formatted} kamas envoyé pour le croupier {croupier.display_name}.")
+    except Exception as e:
+        print(f"❌ Erreur lors de l'envoi du log de commission: {e}")
+
 async def lancer_la_roulette(interaction, duel_data, message_id_final):
     joueur1 = duel_data["joueur1"]
     joueur2 = duel_data["joueur2"]
     valeur_choisie = duel_data["valeur"]
     montant = duel_data["montant"]
     type_pari = duel_data["type"]
-    croupier = interaction.user
+    croupier = duel_data["croupier"] 
 
     suspense_embed = discord.Embed(
         title="🎰 La roulette tourne...",
@@ -171,6 +195,12 @@ async def lancer_la_roulette(interaction, duel_data, message_id_final):
     except Exception as e:
         print("❌ Erreur insertion base:", e)
 
+
+     # --- NOUVEAU BLOC AJOUTÉ ICI ---
+    # Log de la commission
+    if croupier and com_gain > 0:
+        await log_commission(croupier, com_gain, joueur1, joueur2, montant)
+    
     duels.pop(duel_data["message_id_initial"], None)
 
 # --- Vues Discord ---
