@@ -122,6 +122,7 @@ async def lancer_la_roulette(interaction, duel_data, message_id_final):
 
     gagnant = joueur1 if condition_gagnante else joueur2
     net_gain = int(montant * 2 * (1 - COMMISSION))
+    com_gain = int(montant * 2 * COMMISSION)
 
     result_embed = discord.Embed(
         title="🎲 Résultat du Duel Roulette",
@@ -143,6 +144,7 @@ async def lancer_la_roulette(interaction, duel_data, message_id_final):
     # Correction pour empêcher le retour à la ligne
     result_embed.add_field(name="🏆 Gagnant", value=f"**{gagnant.mention}** remporte **{net_gain:,}".replace(",", "\u00A0") + "\u00A0kamas** 💰 (après 5% de commission)", inline=False)
     result_embed.add_field(name="💰 Montant misé", value=f"{montant:,}".replace(",", "\u00A0") + "\u00A0kamas par joueur", inline=False)
+    result_embed.add_field(name="💰 Montant misé", value=f"{com_gain:,}".replace(",", "\u00A0") + "\u00A0kamas 5% de commission", inline=False)
     
     result_embed.set_footer(text="🎰 Duel terminé • Bonne chance pour le prochain !")
     
