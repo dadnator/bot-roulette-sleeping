@@ -12,19 +12,22 @@ token = os.environ['TOKEN_BOT_DISCORD']
 
 ID_CROUPIER = 1401471414262829066
 ID_MEMBRE = 1366378672281620495
-ID_SALON_ROULETTE = 1407650674384044033
-ID_SALON_LOG_COMMISSION = 1407650674384044033
+ID_SALON_ROULETTE = 1394960912435122257
+ID_SALON_LOG_COMMISSION = 1366384335615164529
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="/", intents=intents)
 
 duels = {}
 
+# Mise à jour du dictionnaire EMOJIS
 EMOJIS = {
     "rouge": "🔴",
     "noir": "⚫",
     "pair": "🔢",
-    "impair": "🔢"
+    "impair": "🔢",
+    "1-18": "⬇️", # Ajout pour 1-18 (Petit)
+    "19-36": "⬆️" # Ajout pour 19-36 (Grand)
 }
 
 COMMISSION = 0.05
@@ -135,14 +138,22 @@ async def lancer_la_roulette(interaction, duel_data, message_id_final):
 
     couleur = "rouge" if numero in ROUGES else "noir"
     parite = "pair" if numero % 2 == 0 else "impair"
-    opposés = {"rouge": "noir", "noir": "rouge", "pair": "impair", "impair": "pair"}
+    taille = "1-18" if 1 <= numero <= 18 else "19-36" # Détermination de la taille
+    opposés = {"rouge": "noir", "noir": "rouge", "pair": "impair", "impair": "pair", "1-18": "19-36", "19-36": "1-18"} # Mise à jour des opposés
 
     valeur_joueur1 = valeur_choisie
     valeur_joueur2 = opposés[valeur_joueur1]
 
-    condition_gagnante = (
-        couleur == valeur_joueur1 if type_pari == "couleur" else parite == valeur_joueur1
-    )
+    # Logique de la condition gagnante mise à jour
+    if type_pari == "couleur":
+        condition_gagnante = couleur == valeur_joueur1
+    elif type_pari == "pair_impair": # Le type de pari pour pair/impair est "pair" dans PariView, renommé pour plus de clarté
+        condition_gagnante = parite == valeur_joueur1
+    elif type_pari == "taille": # Nouveau type de pari pour 1-18/19-36
+        condition_gagnante = taille == valeur_joueur1
+    else:
+        # Fallback pour d'autres cas (bien que non attendu avec les boutons actuels)
+        condition_gagnante = False
 
     gagnant = joueur1 if condition_gagnante else joueur2
     net_gain = int(montant * 2 * (1 - COMMISSION))
@@ -153,7 +164,8 @@ async def lancer_la_roulette(interaction, duel_data, message_id_final):
         description=(
             f"🎯 **Numéro tiré** : `{numero}`\n"
             f"{'🔴 Rouge' if couleur == 'rouge' else '⚫ Noir'} — "
-            f"{'🔢 Pair' if parite == 'pair' else '🔢 Impair'}"
+            f"{'🔢 Pair' if parite == 'pair' else '🔢 Impair'} — "
+            f"{'⬇️ 1-18' if taille == '1-18' else '⬆️ 19-36'}" # Affichage de la taille
         ),
         color=discord.Color.green() if gagnant == joueur1 else discord.Color.red()
     )
@@ -162,7 +174,7 @@ async def lancer_la_roulette(interaction, duel_data, message_id_final):
         result_embed.set_thumbnail(url=ROULETTE_NUM_IMAGES[numero])
 
     result_embed.add_field(name="👤 Joueur 1", value=f"{joueur1.mention}\nChoix : {EMOJIS[valeur_joueur1]} `{valeur_joueur1.upper()}`", inline=True)
-    result_embed.add_field(name="👤 Joueur 2", value=f"{joueur2.mention}\nChoix : {EMOJIS[valeur_joueur2]} `{valeur_joueur2.upper()}`", inline=False)
+    result_embed.add_field(name="👤 Joueur 2", value=f"{joueur2.mention}\nChoix : {EMOJIS[valeur_joueur2]} `{valeur_joueur2.upper()}`", inline=True) # Changement inline à True pour aligner
     result_embed.add_field(name=" ", value="─" * 20, inline=False)
     
     # Correction pour empêcher le retour à la ligne
@@ -196,7 +208,7 @@ async def lancer_la_roulette(interaction, duel_data, message_id_final):
         print("❌ Erreur insertion base:", e)
 
 
-     # --- NOUVEAU BLOC AJOUTÉ ICI ---
+      # --- NOUVEAU BLOC AJOUTÉ ICI ---
     # Log de la commission
     if croupier and com_gain > 0:
         await log_commission(croupier, com_gain, joueur1, joueur2, montant)
@@ -205,7 +217,8 @@ async def lancer_la_roulette(interaction, duel_data, message_id_final):
 
 # --- Vues Discord ---
 class RejoindreView(discord.ui.View):
-    opposés = {"rouge": "noir", "noir": "rouge", "pair": "impair", "impair": "pair"}
+    # Mise à jour des opposés
+    opposés = {"rouge": "noir", "noir": "rouge", "pair": "impair", "impair": "pair", "1-18": "19-36", "19-36": "1-18"}
 
     def __init__(self, message_id, joueur1, type_pari, valeur_choisie, montant):
         super().__init__(timeout=None)
@@ -220,6 +233,7 @@ class RejoindreView(discord.ui.View):
         self.rejoindre_croupier_button = None
         self.lancer_roulette_button = None
         
+        # Le reste du code d'initialisation (boutons désactivés/ajoutés) reste le même
         if self.joueur2:
             self.rejoindre.disabled = True
             self.rejoindre_croupier_button = discord.ui.Button(
@@ -287,10 +301,10 @@ class RejoindreView(discord.ui.View):
             allowed_mentions=discord.AllowedMentions(roles=True)
         )
 
-     # 2. ENVOI DU MESSAGE DE NOTIFICATION DE MISE (Sans le montant)
+      # 2. ENVOI DU MESSAGE DE NOTIFICATION DE MISE (Sans le montant)
         await interaction.followup.send(
             f"🎯 {self.joueur2.mention} **a rejoint le duel de** {self.joueur1.mention} \n "
-            f"{role_croupier.mention}, veuillez récupérer les mises du duel  .",
+            f"{role_croupier.mention}, veuillez récupérer les mises du duel  .",
             allowed_mentions=discord.AllowedMentions(roles=True, users=True) 
         )
 
@@ -371,7 +385,8 @@ class PariView(discord.ui.View):
         )
 
         # On prépare le message public
-        opposés = {"rouge": "noir", "noir": "rouge", "pair": "impair", "impair": "pair"}
+        # Mise à jour des opposés
+        opposés = {"rouge": "noir", "noir": "rouge", "pair": "impair", "impair": "pair", "1-18": "19-36", "19-36": "1-18"}
         choix_restant = opposés[valeur]
 
         public_embed = discord.Embed(
@@ -415,25 +430,37 @@ class PariView(discord.ui.View):
             "message_id_initial": public_message.id
         }
 
-    @discord.ui.button(label="🔴 Rouge", style=discord.ButtonStyle.danger, custom_id="pari_rouge")
+    # Boutons Couleur (Rouge/Noir)
+    @discord.ui.button(label="🔴 Rouge", style=discord.ButtonStyle.danger, custom_id="pari_rouge", row=0)
     async def rouge(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.lock_in_choice(interaction, "couleur", "rouge")
 
-    @discord.ui.button(label="⚫ Noir", style=discord.ButtonStyle.secondary, custom_id="pari_noir")
+    @discord.ui.button(label="⚫ Noir", style=discord.ButtonStyle.secondary, custom_id="pari_noir", row=0)
     async def noir(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.lock_in_choice(interaction, "couleur", "noir")
 
-    @discord.ui.button(label="🔢 Pair", style=discord.ButtonStyle.primary, custom_id="pari_pair")
+    # Boutons Pair/Impair
+    @discord.ui.button(label="🔢 Pair", style=discord.ButtonStyle.primary, custom_id="pari_pair", row=1)
     async def pair(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.lock_in_choice(interaction, "pair", "pair")
+        await self.lock_in_choice(interaction, "pair_impair", "pair") # Changement de type à "pair_impair"
 
-    @discord.ui.button(label="🔢 Impair", style=discord.ButtonStyle.blurple, custom_id="pari_impair")
+    @discord.ui.button(label="🔢 Impair", style=discord.ButtonStyle.blurple, custom_id="pari_impair", row=1)
     async def impair(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self.lock_in_choice(interaction, "pair", "impair")
+        await self.lock_in_choice(interaction, "pair_impair", "impair") # Changement de type à "pair_impair"
+        
+    # Nouveaux Boutons 1-18 / 19-36
+    @discord.ui.button(label="⬇️ 1-18 (Petit)", style=discord.ButtonStyle.grey, custom_id="pari_1-18", row=2)
+    async def dix_huit_bas(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.lock_in_choice(interaction, "taille", "1-18") # Nouveau type "taille"
+        
+    @discord.ui.button(label="⬆️ 19-36 (Grand)", style=discord.ButtonStyle.grey, custom_id="pari_19-36", row=2)
+    async def dix_huit_haut(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.lock_in_choice(interaction, "taille", "19-36") # Nouveau type "taille"
+
 
 class StatsView(discord.ui.View):
     def __init__(self, ctx, entries, page=0):
-        super().__init__(timeout=120)
+        super().__init__(timeout=None)
         self.ctx = ctx
         self.entries = entries
         self.page = page
@@ -666,7 +693,8 @@ async def quit_duel(interaction: discord.Interaction):
             valeur_choisie = duel_data["valeur"]
             type_pari = duel_data["type"]
             
-            opposés = {"rouge": "noir", "noir": "rouge", "pair": "impair", "impair": "pair"}
+            # Mise à jour des opposés
+            opposés = {"rouge": "noir", "noir": "rouge", "pair": "impair", "impair": "pair", "1-18": "19-36", "19-36": "1-18"}
             choix_restant = opposés[valeur_choisie]
 
             new_embed = discord.Embed(
