@@ -449,11 +449,11 @@ class PariView(discord.ui.View):
         await self.lock_in_choice(interaction, "pair_impair", "impair") # Changement de type à "pair_impair"
         
     # Nouveaux Boutons 1-18 / 19-36
-    @discord.ui.button(label="⬇️ 1-18 (Petit)", style=discord.ButtonStyle.grey, custom_id="pari_1-18", row=2)
+    @discord.ui.button(label="⬇️ 1-18", style=discord.ButtonStyle.grey, custom_id="pari_1-18", row=2)
     async def dix_huit_bas(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.lock_in_choice(interaction, "taille", "1-18") # Nouveau type "taille"
         
-    @discord.ui.button(label="⬆️ 19-36 (Grand)", style=discord.ButtonStyle.grey, custom_id="pari_19-36", row=2)
+    @discord.ui.button(label="⬆️ 19-36", style=discord.ButtonStyle.grey, custom_id="pari_19-36", row=2)
     async def dix_huit_haut(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.lock_in_choice(interaction, "taille", "19-36") # Nouveau type "taille"
 
