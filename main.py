@@ -174,7 +174,7 @@ async def lancer_la_roulette(interaction, duel_data, message_id_final):
         result_embed.set_thumbnail(url=ROULETTE_NUM_IMAGES[numero])
 
     result_embed.add_field(name="👤 Joueur 1", value=f"{joueur1.mention}\nChoix : {EMOJIS[valeur_joueur1]} `{valeur_joueur1.upper()}`", inline=True)
-    result_embed.add_field(name="👤 Joueur 2", value=f"{joueur2.mention}\nChoix : {EMOJIS[valeur_joueur2]} `{valeur_joueur2.upper()}`", inline=True) # Changement inline à True pour aligner
+    result_embed.add_field(name="👤 Joueur 2", value=f"{joueur2.mention}\nChoix : {EMOJIS[valeur_joueur2]} `{valeur_joueur2.upper()}`", inline=False)
     result_embed.add_field(name=" ", value="─" * 20, inline=False)
     
     # Correction pour empêcher le retour à la ligne
@@ -208,7 +208,7 @@ async def lancer_la_roulette(interaction, duel_data, message_id_final):
         print("❌ Erreur insertion base:", e)
 
 
-      # --- NOUVEAU BLOC AJOUTÉ ICI ---
+     # --- NOUVEAU BLOC AJOUTÉ ICI ---
     # Log de la commission
     if croupier and com_gain > 0:
         await log_commission(croupier, com_gain, joueur1, joueur2, montant)
